@@ -1,0 +1,415 @@
+SSE-S3 encryption
+
+server side encryption:specify an encryption key
+encryption setting:override bucket settings for default encryption
+encryption key type:Amazon S3 managed keys (SSE-S3)
+https://www.youtube.com/watch?v=YKofCng-imw
+https://www.youtube.com/watch?v=rOV2W6zYcmM
+https://docs.aws.amazon.com/cli/latest/reference/organizations/detach-policy.html
+https://docs.aws.amazon.com/cli/latest/reference/iot/detach-policy.html
+https://awscli.amazonaws.com/v2/documentation/api/latest/reference/iam/detach-user-policy.html
+https://docs.aws.amazon.com/cli/latest/reference/iam/list-user-policies.html
+https://docs.aws.amazon.com/cli/latest/reference/iam/list-attached-user-policies.html
+https://awscli.amazonaws.com/v2/documentation/api/latest/reference/iam/list-policies.html
+https://docs.aws.amazon.com/cli/latest/reference/iam/list-ssh-public-keys.html
+
+aws s3 ls s3://tallshawnnetwork (list objects in the bucket named tallshawnnetwork)
+aws s3 ls (lists buckets in account)
+
+#Upload pictures from current directory to S3 bucket (not encrypted)
+
+home@Homes-MacBook-Pro object_encryption_cantrill % aws s3 cp sse-s3-dweez.jpg s3://tallshawnnetwork
+upload: ./sse-s3-dweez.jpg to s3://tallshawnnetwork/sse-s3-dweez.jpg
+home@Homes-MacBook-Pro object_encryption_cantrill % 
+
+#Upload pictures from current directory to S3 bucket (encrypted)
+
+home@Homes-MacBook-Pro object_encryption_cantrill % aws s3 cp sse-s3-dweez.jpg s3://tallshawnnetwork --sse                          
+upload: ./sse-s3-dweez.jpg to s3://tallshawnnetwork/sse-s3-dweez.jpg
+home@Homes-MacBook-Pro object_encryption_cantrill % 
+
+#Delete picture from bucket 
+
+home@Homes-MacBook-Pro SSE-S3encryption % aws s3api delete-object --bucket tallshawnnetwork --key sse-s3-dweez.jpg
+home@Homes-MacBook-Pro SSE-S3encryption % 
+
+https://docs.aws.amazon.com/cli/latest/reference/s3api/delete-object.html
+
+#Upload picture with SSE-S3 encryption (picture file was empthy when using s3api for upload,using "aws s3 cp" was successful)
+
+home@Homes-MacBook-Pro Downloads % aws s3api put-object --bucket tallshawnnetwork --key sse-s3-dweez.jpg --server-side-encryption AES256        
+{
+    "ETag": "\"d41d8cd98f00b204e9800998ecf8427e\"",
+    "ServerSideEncryption": "AES256"
+}
+home@Homes-MacBook-Pro Downloads % 
+
+#Upload picture with SSE KMS encryption (without --encryption-contect option)
+
+home@Homes-MacBook-Pro cantrill_downloads % aws s3api put-object --bucket tallshawnnetwork --key sse-kms-ginny.jpg --server-side-encryption aws:kms --ssekms-key-id 2723f7e1-adec-40ab-a15c-38f331a6c626                                    
+{
+    "ETag": "\"31c1529317127c4b22a4bd9b6fcfb609\"",
+    "ServerSideEncryption": "aws:kms",
+    "SSEKMSKeyId": "arn:aws:kms:us-east-1:730335577638:key/2723f7e1-adec-40ab-a15c-38f331a6c626"
+}
+home@Homes-MacBook-Pro cantrill_downloads % 
+
+#upload picture with SSE-KMS encryption (with default AWS S3 keygen and without AWS KMS KEY)
+
+home@Homes-MacBook-Pro cantrill_downloads % aws s3api put-object --bucket tallshawnnetwork --key sse-kms-ginny.jpg --server-side-encryption aws:kms                                                     
+{
+    "ETag": "\"7f0e3ff26b1d6129a4256db5f36d17bf\"",
+    "ServerSideEncryption": "aws:kms",
+    "SSEKMSKeyId": "arn:aws:kms:us-east-1:730335577638:key/e622481f-563f-4508-a5c3-5e1e0d9cb63d"
+}
+home@Homes-MacBook-Pro cantrill_downloads % 
+
+
+copy image into bucket with customer managed key  [sse-kms] 
+cantrillkey was created by myself.You can find it by going to console/s3/upload pic/permission and choose from (Available AWS KMS keys)
+
+home@Homes-MacBook-Pro object_encryption_cantrill % aws s3 cp sse-kms-ginny.jpg s3://tallshawnnetwork --sse aws:kms --sse-kms-key-id 2723f7e1-adec-40ab-a15c-38f331a6c626
+upload: ./sse-kms-ginny.jpg to s3://tallshawnnetwork/sse-kms-ginny.jpg
+
+copy image into bucket with aws/s3 key [sse-kms]
+You can find it by going to console/s3/upload pic/permission and choose from (Available AWS KMS keys)
+
+home@Homes-MacBook-Pro object_encryption_cantrill % aws s3 cp sse-kms-ginny.jpg s3://tallshawnnetwork --sse aws:kms --sse-kms-key-id 2723f7e1-adec-40ab-a15c-38f331a6c626
+upload: ./sse-kms-ginny.jpg to s3://tallshawnnetwork/sse-kms-ginny.jpg
+
+S3 object copy CLI commands https://docs.aws.amazon.com/cli/latest/userguide/cli-services-s3-commands.html#using-s3-commands-managing-objects-copy
+SSE-S3 encryption CLI commands https://docs.aws.amazon.com/AmazonS3/latest/userguide/specifying-s3-encryption.html
+SSE-KMS encryption CLI commands https://docs.aws.amazon.com/AmazonS3/latest/userguide/specifying-kms-encryption.html
+SSE-KMS encryption context CLI commands https://docs.aws.amazon.com/encryption-sdk/latest/developer-guide/crypto-cli-how-to.html#crypto-cli-encryption-context
+SSE-KMS encryption context CLI commands https://docs.aws.amazon.com/encryption-sdk/latest/developer-guide/crypto-cli-examples.html
+
+
+list users 
+
+home@Homes-MacBook-Pro object_encryption_cantrill % aws iam list-users
+{
+    "Users": [
+        {
+            "Path": "/",
+            "UserName": "Iamadmin-cloudsurf",
+            "UserId": "AIDA2UC3EQYTM3MFVLNGC",
+            "Arn": "arn:aws:iam::730335577638:user/Iamadmin-cloudsurf",
+            "CreateDate": "2024-07-12T19:15:54+00:00",
+            "PasswordLastUsed": "2024-08-05T13:27:59+00:00"
+        }
+    ]
+}
+
+list roles
+
+home@Homes-MacBook-Pro object_encryption_cantrill % aws iam list-roles
+{
+    "Roles": [
+        {
+            "Path": "/aws-service-role/cloudtrail.amazonaws.com/",
+            "RoleName": "AWSServiceRoleForCloudTrail",
+            "RoleId": "AROA2UC3EQYTEMCQVRJJQ",
+            "Arn": "arn:aws:iam::730335577638:role/aws-service-role/cloudtrail.amazonaws.com/AWSServiceRoleForCloudTrail",
+            "CreateDate": "2024-07-15T12:54:16+00:00",
+            "AssumeRolePolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [
+                    {
+                        "Effect": "Allow",
+                        "Principal": {
+                            "Service": "cloudtrail.amazonaws.com"
+:
+
+list policies
+
+home@Homes-MacBook-Pro object_encryption_cantrill % aws iam list-policies   
+{
+    "Policies": [
+        {
+            "PolicyName": "Cloudtrail-CW-access-policy-animals4lifeOrg-8484f5b4-a513-43f3-a5ca-88fca23146b9",
+            "PolicyId": "ANPA2UC3EQYTKZU7RKHQE",
+            "Arn": "arn:aws:iam::730335577638:policy/service-role/Cloudtrail-CW-access-policy-animals4lifeOrg-8484f5b4-a513-43f3-a5ca-88fca23146b9",
+            "Path": "/service-role/",
+            "DefaultVersionId": "v1",
+            "AttachmentCount": 1,
+            "PermissionsBoundaryUsageCount": 0,
+            "IsAttachable": true,
+            "CreateDate": "2024-07-15T12:54:17+00:00",
+            "UpdateDate": "2024-07-15T12:54:17+00:00"
+        },
+:
+
+list kms aliases
+
+home@Homes-MacBook-Pro object_encryption_cantrill % aws kms list-aliases
+{
+    "Aliases": [
+        {
+            "AliasName": "alias/aws/dynamodb",
+            "AliasArn": "arn:aws:kms:us-east-1:730335577638:alias/aws/dynamodb"
+        },
+        {
+            "AliasName": "alias/aws/ebs",
+            "AliasArn": "arn:aws:kms:us-east-1:730335577638:alias/aws/ebs"
+        },
+        {
+            "AliasName": "alias/aws/elasticfilesystem",
+            "AliasArn": "arn:aws:kms:us-east-1:730335577638:alias/aws/elasticfilesystem"
+        },
+
+Create user policy CLI [create json file policy first] (file name and policy name are named different by mistake but doesnt matter)
+aws iam create-policy --policy-name s3-restricted-policy --policy-document file://DenyIAMpolicy.json       
+
+{
+    "Policy": {
+        "PolicyName": "s3-restricted-policy",
+        "PolicyId": "ANPA2UC3EQYTKPHDWPPNP",
+        "Arn": "arn:aws:iam::730335577638:policy/s3-restricted-policy",
+        "Path": "/",
+        "DefaultVersionId": "v1",
+        "AttachmentCount": 0,
+        "PermissionsBoundaryUsageCount": 0,
+        "IsAttachable": true,
+        "CreateDate": "2024-08-08T20:18:25+00:00",
+        "UpdateDate": "2024-08-08T20:18:25+00:00"
+    }
+}
+
+Attach policy to user
+home@Homes-MacBook-Pro SSE-S3encryption % aws iam attach-user-policy --policy-arn arn:aws:iam::730335577638:policy/s3-restricted-policy --user-name Iamadmin-cloudsurf
+
+home@Homes-MacBook-Pro SSE-S3encryption % aws iam list-policies 
+{
+    "Policies": [
+        {
+            "PolicyName": "Cloudtrail-CW-access-policy-animals4lifeOrg-8484f5b4-a513-43f3-a5ca-88fca23146b9",
+            "PolicyId": "ANPA2UC3EQYTKZU7RKHQE",
+            "Arn": "arn:aws:iam::730335577638:policy/service-role/Cloudtrail-CW-access-policy-animals4lifeOrg-8484f5b4-a513-43f3-a5ca-88fca23146b9",
+            "Path": "/service-role/",
+            "DefaultVersionId": "v1",
+            "AttachmentCount": 1,
+            "PermissionsBoundaryUsageCount": 0,
+            "IsAttachable": true,
+            "CreateDate": "2024-07-15T12:54:17+00:00",
+            "UpdateDate": "2024-07-15T12:54:17+00:00"
+        },
+        {
+            "PolicyName": "s3-restricted-policy",
+            "PolicyId": "ANPA2UC3EQYTKPHDWPPNP",
+            "Arn": "arn:aws:iam::730335577638:policy/s3-restricted-policy",
+            "Path": "/",
+            "DefaultVersionId": "v1",
+            "AttachmentCount": 1,
+            "PermissionsBoundaryUsageCount": 0,
+            "IsAttachable": true,
+            "CreateDate": "2024-08-08T20:18:25+00:00",
+            "UpdateDate": "2024-08-08T20:18:25+00:00"
+        },
+        {
+            "PolicyName": "AdministratorAccess",
+            "PolicyId": "ANPAIWMBCKSKIEE64ZLYK",
+            "Arn": "arn:aws:iam::aws:policy/AdministratorAccess",
+            "Path": "/",
+            "DefaultVersionId": "v1",
+            "AttachmentCount": 1,
+            "PermissionsBoundaryUsageCount": 0,
+            "IsAttachable": true,
+            "CreateDate": "2015-02-06T18:39:46+00:00",
+            "UpdateDate": "2015-02-06T18:39:46+00:00"
+        },
+
+List attached user policies
+
+home@Homes-MacBook-Pro SSE-S3encryption % aws iam list-attached-user-policies \
+    --user-name Iamadmin-cloudsurf
+{
+    "AttachedPolicies": [
+        {
+            "PolicyName": "AdministratorAccess",
+            "PolicyArn": "arn:aws:iam::aws:policy/AdministratorAccess"
+        },
+        {
+            "PolicyName": "s3-restricted-policy",
+            "PolicyArn": "arn:aws:iam::730335577638:policy/s3-restricted-policy"
+        }
+    ]
+}
+
+Detach user policies (check to make sure policy is detached from user)
+
+home@Homes-MacBook-Pro SSE-S3encryption % aws iam detach-user-policy \    --user-name Iamadmin-cloudsurf \   
+    --policy-arn arn:aws:iam::730335577638:policy/s3-restricted-policy
+home@Homes-MacBook-Pro SSE-S3encryption % aws iam list-attached-user-policies \
+    --user-name Iamadmin-cloudsurf  
+{
+    "AttachedPolicies": [
+        {
+            "PolicyName": "AdministratorAccess",
+            "PolicyArn": "arn:aws:iam::aws:policy/AdministratorAccess"
+        }
+    ]
+}
+
+Delete policy (and check to see if policy has been removed)
+
+home@Homes-MacBook-Pro SSE-S3encryption % aws iam delete-policy --policy-arn arn:aws:iam::730335577638:policy/s3-restricted-policy
+
+home@Homes-MacBook-Pro SSE-S3encryption % aws iam list-policies
+{
+    "Policies": [
+        {
+            "PolicyName": "Cloudtrail-CW-access-policy-animals4lifeOrg-8484f5b4-a513-43f3-a5ca-88fca23146b9",
+            "PolicyId": "ANPA2UC3EQYTKZU7RKHQE",
+            "Arn": "arn:aws:iam::730335577638:policy/service-role/Cloudtrail-CW-access-policy-animals4lifeOrg-8484f5b4-a513-43f3-a5ca-88fca23146b9",
+            "Path": "/service-role/",
+            "DefaultVersionId": "v1",
+            "AttachmentCount": 1,
+            "PermissionsBoundaryUsageCount": 0,
+            "IsAttachable": true,
+            "CreateDate": "2024-07-15T12:54:17+00:00",
+            "UpdateDate": "2024-07-15T12:54:17+00:00"
+        },
+        {
+            "PolicyName": "AdministratorAccess",
+            "PolicyId": "ANPAIWMBCKSKIEE64ZLYK",
+            "Arn": "arn:aws:iam::aws:policy/AdministratorAccess",
+            "Path": "/",
+            "DefaultVersionId": "v1",
+:...skipping...
+{
+    "Policies": [
+        {
+            "PolicyName": "Cloudtrail-CW-access-policy-animals4lifeOrg-8484f5b4-a513-43f3-a5ca-88fca23146b9",
+            "PolicyId": "ANPA2UC3EQYTKZU7RKHQE",
+            "Arn": "arn:aws:iam::730335577638:policy/service-role/Cloudtrail-CW-access-policy-animals4lifeOrg-8484f5b4-a513-43f3-a5ca-88fca23146b9",
+            "Path": "/service-role/",
+            "DefaultVersionId": "v1",
+            "AttachmentCount": 1,
+            "PermissionsBoundaryUsageCount": 0,
+            "IsAttachable": true,
+            "CreateDate": "2024-07-15T12:54:17+00:00",
+            "UpdateDate": "2024-07-15T12:54:17+00:00"
+        },
+        {
+            "PolicyName": "AdministratorAccess",
+            "PolicyId": "ANPAIWMBCKSKIEE64ZLYK",
+            "Arn": "arn:aws:iam::aws:policy/AdministratorAccess",
+            "Path": "/",
+            "DefaultVersionId": "v1",
+            "AttachmentCount": 1,
+            "PermissionsBoundaryUsageCount": 0,
+            "IsAttachable": true,
+            "CreateDate": "2015-02-06T18:39:46+00:00",
+            "UpdateDate": "2015-02-06T18:39:46+00:00"
+        },
+        {
+            "PolicyName": "PowerUserAccess",
+:...skipping...
+{
+    "Policies": [
+        {
+            "PolicyName": "Cloudtrail-CW-access-policy-animals4lifeOrg-8484f5b4-a513-43f3-a5ca-88fca23146b9",
+            "PolicyId": "ANPA2UC3EQYTKZU7RKHQE",
+            "Arn": "arn:aws:iam::730335577638:policy/service-role/Cloudtrail-CW-access-policy-animals4lifeOrg-8484f5b4-a513-43f3-a5ca-88fca23146b9",
+            "Path": "/service-role/",
+            "DefaultVersionId": "v1",
+            "AttachmentCount": 1,
+            "PermissionsBoundaryUsageCount": 0,
+            "IsAttachable": true,
+            "CreateDate": "2024-07-15T12:54:17+00:00",
+            "UpdateDate": "2024-07-15T12:54:17+00:00"
+        },
+        {
+            "PolicyName": "AdministratorAccess",
+            "PolicyId": "ANPAIWMBCKSKIEE64ZLYK",
+            "Arn": "arn:aws:iam::aws:policy/AdministratorAccess",
+            "Path": "/",
+            "DefaultVersionId": "v1",
+            "AttachmentCount": 1,
+            "PermissionsBoundaryUsageCount": 0,
+            "IsAttachable": true,
+            "CreateDate": "2015-02-06T18:39:46+00:00",
+            "UpdateDate": "2015-02-06T18:39:46+00:00"
+        },
+
+aws kms list-keys
+
+home@Homes-MacBook-Pro SSE-S3encryption % aws kms list-keys
+
+{
+    "Keys": [
+        {
+            "KeyId": "2723f7e1-adec-40ab-a15c-38f331a6c626",
+            "KeyArn": "arn:aws:kms:us-east-1:730335577638:key/2723f7e1-adec-40ab-a15c-38f331a6c626"
+        },
+        {
+            "KeyId": "86b29319-58d9-43c0-b191-3d2ad8d121e7",
+            "KeyArn": "arn:aws:kms:us-east-1:730335577638:key/86b29319-58d9-43c0-b191-3d2ad8d121e7"
+        },
+        {
+            "KeyId": "b7549582-caa8-41eb-87d2-af3d6787fb0b",
+            "KeyArn": "arn:aws:kms:us-east-1:730335577638:key/b7549582-caa8-41eb-87d2-af3d6787fb0b"
+        },
+        {
+            "KeyId": "b9c7cd97-5b83-4ff8-8df1-e0caa558b406",
+            "KeyArn": "arn:aws:kms:us-east-1:730335577638:key/b9c7cd97-5b83-4ff8-8df1-e0caa558b406"
+        },
+        {
+            "KeyId": "e622481f-563f-4508-a5c3-5e1e0d9cb63d",
+            "KeyArn": "arn:aws:kms:us-east-1:730335577638:key/e622481f-563f-4508-a5c3-5e1e0d9cb63d"
+        }
+    ]
+}
+(END)
+
+Get key policies in json format (aws managed keys cannot be edited) (KMS customer managed keys can be edited)
+
+home@Homes-MacBook-Pro SSE-S3encryption % aws kms get-key-policy --key-id e622481f-563f-4508-a5c3-5e1e0d9cb63d --policy-name default --output text
+{
+  "Version" : "2012-10-17",
+  "Id" : "auto-s3-2",
+  "Statement" : [ {
+    "Sid" : "Allow access through S3 for all principals in the account that are authorized to use S3",
+    "Effect" : "Allow",
+    "Principal" : {
+      "AWS" : "*"
+    },
+    "Action" : [ "kms:Encrypt", "kms:Decrypt", "kms:ReEncrypt*", "kms:GenerateDataKey*", "kms:DescribeKey" ],
+    "Resource" : "*",
+    "Condition" : {
+      "StringEquals" : {
+        "kms:ViaService" : "s3.us-east-1.amazonaws.com",
+        "kms:CallerAccount" : "730335577638"
+      }
+    }
+:
+home@Homes-MacBook-Pro SSE-S3encryption % aws kms get-key-policy --key-id 2723f7e1-adec-40ab-a15c-38f331a6c626 --policy-name default --output text
+{
+  "Version" : "2012-10-17",
+  "Id" : "key-consolepolicy-3",
+  "Statement" : [ {
+    "Sid" : "Enable IAM User Permissions",
+    "Effect" : "Allow",
+    "Principal" : {
+      "AWS" : "arn:aws:iam::730335577638:root"
+    },
+    "Action" : "kms:*",
+    "Resource" : "*"
+  } ]
+}       default
+
+locate ssh public key
+
+home@Homes-MacBook-Pro ~ % cd .ssh
+home@Homes-MacBook-Pro .ssh % ls
+google_compute_engine		id_rsa				id_rsa_tomcat.pub
+google_compute_engine.pub	id_rsa.pub			known_hosts
+google_compute_known_hosts	id_rsa_tomcat			known_hosts.old
+home@Homes-MacBook-Pro .ssh % cat id_rsa.pub
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCpVzTaiQaTRWO4jRuFysccoCc1lFVW7KhfnhiYXgkoMTop0UtcdzZjGCkWr6B+1sGprrOoflzLvafuhckQaje7t24fXKU8gbQTjuFT5sXzEJfkz/y/JKJOYQb/xXXCXnKJw92wgKusu7kgFuBTjs/Cdun/N4BZ0Q9EHe75SgVfhDRkcsyNUgcPyDEfGy3C0xnfeYAhMQ0U71iSBmCyVcAm1WkUc7/UFuFM4muW+K5dUfTbTR7dSIPeom6ys4F2dIOi2jM+2y0BI6T4027Qd94axXWpEDm6dvx8hMS6m1BcW6r1teJkFFkx0VIVJDfRzWPpK8LrVAryCS4lvWAal9fR home@Homes-MBP.home
+home@Homes-MacBook-Pro .ssh % 
+
+find/locate files
+
+https://ericonsoftware.com/macos-how-to-search-files-with-terminal/
+

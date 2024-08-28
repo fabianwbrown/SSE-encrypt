@@ -1,0 +1,16 @@
+#This policy only trusts the root user account
+{
+    "Id": "key-consolepolicy-3",
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "Enable IAM User Permissions",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::730335577638:root"
+            },
+            "Action": "kms:*",
+            "Resource": "*"
+        }
+    ]
+}
